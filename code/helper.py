@@ -1,19 +1,7 @@
-import os
-import numpy as np
-from scipy import misc
+from tensorflow.examples.tutorials.mnist import input_data
 
-# funtion will read all the images in the given dir
-# and flatten them and return the array
-def readMNISTData(dataDirectory):
-	# initialize empty list
-	images = []
-
-	# read all the filenames present in the directory
-	filenames = os.listdir(dataDirectory)
-
-	# read each image, flatten it, append to list
-	for filename in filenames:
-		im = misc.imread(dataDirectory+'/'+filename).flatten('C')
-		images.append(im)
-
-	return images
+def readMNISTData():
+	mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+	return [mnist.train.images, mnist.train.labels,
+			mnist.validation.images, mnist.validation.labels,
+			mnist.test.images, mnist.test.labels]
