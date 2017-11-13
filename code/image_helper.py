@@ -14,5 +14,14 @@ def showImage(img):
 
 def batchReadAndResizeImages(directory, outputSize, interpMethod):
 	# 2D array of images
-	imgs = np.array()
+	imgs = []
+	for file in os.listdir(directory):
+		if file.endswith('.png'):
+			print(file)
+			img = misc.imread(directory+'/'+file);
+			img = resizeImage(img, outputSize, interpMethod)
+			print(img.shape)
+			img = img.flatten()
+			print(len(img))
+			imgs.append([img])
 	return imgs
