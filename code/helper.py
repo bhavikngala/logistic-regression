@@ -1,5 +1,6 @@
 from tensorflow.examples.tutorials.mnist import input_data
 from scipy.cluster.vq import kmeans2
+import numpy as np
 
 def readMNISTData():
 	mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
@@ -12,3 +13,25 @@ def applyKmeans2(data, numClusters):
 	centroids, labels = kmeans2(data, numClusters, 
 		iter=20, minit='points', missing='warn')
 	return [centroids, labels]
+
+def computeClusterSpreadsInvs(data, lbls):
+	lbls = np.array(lbls)
+	data = np.array(data)
+
+	unique_lbls = np.unique(lbls)
+	
+	numlbls = unique_lbls.shape[0]
+	spreadInvCols = data.shape[1]
+	spreadInvs = np.empty([numlbls, spreadInvCols, spreadInvCols])
+
+	for lbl in unique_lbls:
+		lbl_indices = np.nonzero(lbls == lbl)
+		lbl_cluster = data[lbl_indices]
+
+		var = np.var(lbl_cluster, axis=0)
+		spread = var * np.identity(lbl_cluster.shape[1])
+		spreadInv = np.linalg.pinv(spread)
+
+		spreadInvs[lbl, :, :] = spreadInv
+
+	return spreadInvs
