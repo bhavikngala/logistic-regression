@@ -2,11 +2,10 @@ from scipy import misc
 import matplotlib.pyplot as plt
 
 def readImage(filename):
-	img = misc.imread(filaname)
-	return img
+	return misc.imread(filaname)
 
-def resizeImage():
-	return resizedImaged
+def resizeImage(img, outputSize, interpMethod):
+	return misc.imresize(img, outputSize, interp = interpMethod)
 
 def showImage(img):
 	plt.imshow(img)
