@@ -79,8 +79,12 @@ def computeWeightsUsingSGD(designMatrix, ouputData, learningRate,
 
 	return weights
 
+# should we changes values above 0.5 to 1 and below 0.5 to 0 or not
 def sigmoid(input):
-	return 1/(1 + np.exp(-1 * input))
+	sigmmoidOutput = 1/(1 + np.exp(-1 * input))
+	sigmmoidOutput[sigmmoidOutput >= 0.5] = 1
+	sigmmoidOutput[sigmmoidOutput < 0.5] = 1
+	return sigmmoidOutput
 
 def predictClass(data, weights):
 	data = np.insert(data, 0, 1, axis=1)
