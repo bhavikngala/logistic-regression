@@ -81,3 +81,7 @@ def computeWeightsUsingSGD(designMatrix, ouputData, learningRate,
 
 def sigmoid(input):
 	return 1/(1 + np.exp(-1 * input))
+
+def predictClass(data, weights):
+	data = np.insert(data, 0, 1, axis=1)
+	return sigmoid((np.sum(np.multiply(data, weights), axis=1)).T)
