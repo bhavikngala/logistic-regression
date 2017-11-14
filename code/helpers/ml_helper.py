@@ -50,6 +50,7 @@ def computeDesignMatrixUsingGaussianBasisFunction(data, means,
 		distFromMean = data - mean
 		firstBasis = np.sum(np.multiply(
 			np.matmul(distFromMean, spreadInv)), axis=1)
+		firstBasis = np.exp(-0.5 * firstBasis)
 		designMatrix[:, rowIndex] = firstBasis
 		rowIndex = rowIndex + 1
 
@@ -77,3 +78,6 @@ def computeWeightsUsingSGD(designMatrix, ouputData, learningRate,
 			weights = weights - learningRate * E
 
 	return weights
+
+def sigmoid(input):
+	return 1/(1 + np.exp(-1 * input))
