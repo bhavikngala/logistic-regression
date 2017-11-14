@@ -79,6 +79,27 @@ def computeWeightsUsingSGD(designMatrix, ouputData, learningRate,
 
 	return weights
 
+def computeWeightsSetUsingSGD(designMatrix, ouputData, learningRate,
+	epochs, batchSize, l2Lambda):
+	N,M = designMatrix.shape
+	K = ouputData.shape[1]
+
+	weights = np.zeros([K, M])
+
+	for epoch in range(epochs):
+		for i in range(int(N/batchSize)):
+			lowerBound = i * batchSize
+			upperBound = min((i + 1) * batchSize, N)
+
+			phi = designMatrix[lowerBound:upperBound, :]
+			target = ouputData[lowerBound:upperBound, :]
+
+			predictedClasses = predictClass(phi, weights)
+
+			E_D = computeErrorGradient(predictedClasses, target)
+
+	return weights
+
 # should we changes values above 0.5 to 1 and below 0.5 to 0 or not
 def sigmoid(input):
 	sigmmoidOutput = 1/(1 + np.exp(-1 * input))
@@ -87,5 +108,15 @@ def sigmoid(input):
 	return sigmmoidOutput
 
 def predictClass(data, weights):
+	predictedClasses = np.zeros([data,shape[0], weights.shape[0]])
 	data = np.insert(data, 0, 1, axis=1)
-	return sigmoid((np.sum(np.multiply(data, weights), axis=1)).T)
+
+	rowIndex = 0
+	for singleData in data:
+		classProbNum = np.sum(np.multiply(singleData, weights),
+			axis=1)
+		classProbs = classProbNum/np.sum(classProbNum)
+		predictedClasses[rowIndex, :] = classProbs
+		rowIndex = rowIndex + 1
+
+	return predictedClasses
