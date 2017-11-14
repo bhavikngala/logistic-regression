@@ -1,6 +1,6 @@
 import numpy as np
-import ml_helper as dumbledore
-import image_helper as davinci
+from helpers import ml_helper as dumbledore
+from helpers import image_helper as davinci
 
 def buildMultiClassClassifier(train_data, train_lbl,
 	vali_data, vali_lbl, numBasis):
@@ -24,8 +24,9 @@ def buildBinaryClassification(train_data, train_lbl,
 			train_data, centroids, clusterSpreadInvs)
 
 	# step 4 - compute weights - run gradient descent 
-	weights = dumbledore.computeWeightsUsingSGD(train_data, train_lbl
-		vali_data, vali_lbl, designMatrix, learning_rate)
+	weights = dumbledore.computeWeightsUsingSGD(
+		designMatrix, train_lbl, learningRate, epochs, batchSize,
+		l2Lambda)
 
 def main():
 	[mnist_train_img, mnist_train_lbl, mnist_validation_img, \
