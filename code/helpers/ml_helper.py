@@ -56,29 +56,6 @@ def computeDesignMatrixUsingGaussianBasisFunction(data, means,
 
 	return np.insert(designMatrix, 0, 1, axis=1)
 
-# function provided by TA
-def computeWeightsUsingSGD(designMatrix, ouputData, learningRate,
-	epochs, batchSize, l2Lambda):
-	N,M = designMatrix.shape
-	weights = np.zeros([1, M])
-
-	for epoch in range(epochs):
-		for i in range(int(N/batchSize)):
-			lowerBound = i * batchSize
-			upperBound = min((i+1)*batchSize, N)
-
-			phi = designMatrix[lowerBound:upperBound, :]
-
-			target = ouputData[lowerBound:upperBound, :]
-
-			ED = np.matmul(sigmoid((np.matmul(phi, weights.T))\
-				 - target).T, phi)
-			E = (ED + l2Lambda * weights)/batchSize
-
-			weights = weights - learningRate * E
-
-	return weights
-
 def computeWeightsSetUsingSGD(designMatrix, ouputData, learningRate,
 	epochs, batchSize, l2Lambda):
 	N,M = designMatrix.shape
