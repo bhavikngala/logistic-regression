@@ -88,24 +88,27 @@ def computeWeightsSetUsingSGD(designMatrix, ouputData, learningRate,
 
 	for epoch in range(epochs):
 		for i in range(int(N/batchSize)):
+			# determine the inputs/outputs in batch
 			lowerBound = i * batchSize
 			upperBound = min((i + 1) * batchSize, N)
 
 			phi = designMatrix[lowerBound:upperBound, :]
 			target = ouputData[lowerBound:upperBound, :]
 
+			# predict class for batch
 			predictedClasses = predictClass(phi, weights)
 
-			E_D = computeErrorGradient(predictedClasses, target)
+			# compute error gradient for each class
+			errorGradients = computeErrorGradient(phi, 
+				predictedClasses, target)
+
+			# add regularizer
+			error = (errorGradients + l2Lambda * weights)/batchSize
+
+			# update weights
+			weights = weights - learningRate * errror
 
 	return weights
-
-# should we changes values above 0.5 to 1 and below 0.5 to 0 or not
-def sigmoid(input):
-	sigmmoidOutput = 1/(1 + np.exp(-1 * input))
-	sigmmoidOutput[sigmmoidOutput >= 0.5] = 1
-	sigmmoidOutput[sigmmoidOutput < 0.5] = 1
-	return sigmmoidOutput
 
 def predictClass(data, weights):
 	predictedClasses = np.zeros([data,shape[0], weights.shape[0]])
@@ -120,3 +123,15 @@ def predictClass(data, weights):
 		rowIndex = rowIndex + 1
 
 	return predictedClasses
+
+def computeErrorGradient(data, predictedClasses, target):
+	errorGradients = np.zeros([predictedClasses.shape[1],
+		data.shape[0]])
+
+	diff = predictedClasses - target
+	
+	for i in range(predictedClasses.shape[1]):
+		errorGradients[i, :] = \
+			np.sum(np.multiply(diff[:, i], data), axis=0)
+
+	return errorGradients
