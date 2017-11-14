@@ -17,11 +17,8 @@ def batchReadAndResizeImages(directory, outputSize, interpMethod):
 	imgs = []
 	for file in os.listdir(directory):
 		if file.endswith('.png'):
-			print(file)
-			img = misc.imread(directory+'/'+file);
+			img = misc.imread(directory+'/'+file, flatten=True);
 			img = resizeImage(img, outputSize, interpMethod)
-			print(img.shape)
 			img = img.flatten()
-			print(len(img))
-			imgs.append([img])
+			imgs.append(img)
 	return imgs
