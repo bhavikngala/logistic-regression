@@ -28,6 +28,21 @@ def buildBinaryClassification(train_data, train_lbl,
 		designMatrix, train_lbl, learningRate, epochs, batchSize,
 		l2Lambda)
 
+	# step 5 - predict class for validation data
+	predictedValidationClass = dumbledore.predictClass(data,
+		weights)
+
+	# step 6 - one vectorization of predicted classes
+	predictedValidationClass = \
+		dumbledore.representPredictionProbsAsOneHotVector(
+			predictedValidationClass)
+
+	# step 7 - calculate validation error
+	validationPredictionError = dumbledore.classificationError(
+		predictedValidationClass, vali_lbl)
+
+	print('classification error is:', validationPredictionError)
+
 def main():
 	[mnist_train_img, mnist_train_lbl, mnist_validation_img, \
 	mnist_validation_lbl, mnist_test_img, mnist_test_lbl] = \
