@@ -112,3 +112,10 @@ def computeErrorGradient(data, predictedClasses, target):
 			np.sum(np.multiply(diff[:, i], data), axis=0)
 
 	return errorGradients
+
+def representPredictionProbsAsOneHotVector(predictionProbs):
+	for row in predictionProbs:
+		c = np.argmax(row)
+		row[:] = 0
+		row[c] = 1
+	return predictionProbs
