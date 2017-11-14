@@ -71,8 +71,8 @@ def computeWeightsUsingSGD(designMatrix, ouputData, learningRate,
 
 			target = ouputData[lowerBound:upperBound, :]
 
-			ED = np.matmul((np.matmul(phi, weights.T) - target).T,
-				phi)
+			ED = np.matmul(sigmoid((np.matmul(phi, weights.T))\
+				 - target).T, phi)
 			E = (ED + l2Lambda * weights)/batchSize
 
 			weights = weights - learningRate * E
