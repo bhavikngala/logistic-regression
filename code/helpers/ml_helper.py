@@ -45,14 +45,16 @@ def computeDesignMatrixUsingGaussianBasisFunction(data, means,
 
 	designMatrix = np.empty([numDataRows, numBasis])
 
-	rowIndex = 0
-	for (mean, spreadInv) in zip(means, spreadInvs):
+	for i in range(0, numBasis - 1):
+		mean = means[i, :]
+		spreadInv = spreadInvs[i, :, :]
+
 		distFromMean = data - mean
 		firstBasis = np.sum(np.multiply(
-			np.matmul(distFromMean, spreadInv)), axis=1)
+			np.matmul(distFromMean, spreadInv), distFromMean), \
+			axis=1)
 		firstBasis = np.exp(-0.5 * firstBasis)
-		designMatrix[:, rowIndex] = firstBasis
-		rowIndex = rowIndex + 1
+		designMatrix[:, i] = firstBasis
 
 	return np.insert(designMatrix, 0, 1, axis=1)
 
