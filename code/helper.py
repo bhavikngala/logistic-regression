@@ -14,6 +14,7 @@ def applyKmeans2(data, numClusters):
 		iter=20, minit='points', missing='warn')
 	return [centroids, labels]
 
+# compute inverse of spreads for each clusters in the data
 def computeClusterSpreadsInvs(data, lbls):
 	lbls = np.array(lbls)
 	data = np.array(data)
@@ -35,3 +36,21 @@ def computeClusterSpreadsInvs(data, lbls):
 		spreadInvs[lbl, :, :] = spreadInv
 
 	return spreadInvs
+
+# compute design matrix of data
+def computeDesignMatrixUsingGaussianBasisFunction(data, means, 
+	spreadInvs):
+	numDataRows = data.shape[0]
+	numBasis = means.shape[0]
+
+	designMatrix = np.empty([numDataRows, numBasis])
+
+	rowIndex = 0
+	for (mean, spreadInv) in zip(means, spreadInvs):
+		distFromMean = data - mean
+		firstBasis = np.sum(np.multiply(
+			np.matmul(distFromMean, spreadInv)), axis=1)
+		designMatrix[:, rowIndex] = firstBasis
+		rowIndex = rowIndex + 1
+
+	return np.insert(designMatrix, 0, 1, axis=1)
