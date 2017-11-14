@@ -119,3 +119,16 @@ def representPredictionProbsAsOneHotVector(predictionProbs):
 		row[:] = 0
 		row[c] = 1
 	return predictionProbs
+
+def classificationError(predictedClass, actualClass):
+	Nwrong = 0
+	Ndata = predictedClass.shape[0]
+
+	pCIndex = np.argmax(predictedClass, axis=1)
+	aCIndex = np.argmax(actualClass, axis=1)
+
+	diff = pCIndex - aCIndex
+	correctMatches = (np.nonzero(diff == 0))[0].shape[0]
+	Nwrong = Ndata - correctMatches
+
+	return Nwrong/Ndata
