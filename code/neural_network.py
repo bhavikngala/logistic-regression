@@ -1,6 +1,10 @@
 # https://www.oreilly.com/learning/not-another-mnist-tutorial-with-tensorflow
 # https://www.tensorflow.org/get_started/mnist/pros
 
+import numpy as np
+# import image_helper
+from helpers import  image_helper as davinci
+
 # import MNIST data module
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -40,6 +44,21 @@ sess = tf.InteractiveSession()
 # operation to initialize the variables we created
 tf.global_variables_initializer().run()
 
+# read usps images
+directory = './../data/Numerals'
+[uspsTrainImgs, uspsTrainLbls] = \
+	davinci.readUSPSTrainImagesAndLbls(directory)
+
+# convert to np array
+uspsTrainImgs = np.array(uspsTrainImgs)
+uspsTrainLbls = np.array(uspsTrainLbls)
+
+# concatenate data with mnist data
+mnist.train.images = np.concatenate([mnist.train.images,
+	uspsTrainImgs])
+mnist.train.labels = np.concatenate([mnist.train.lables,
+	uspsTrainLbls])
+
 # run training step 1000 times
 for _ in range(1000):
 	# batch of random 100 images
@@ -47,3 +66,27 @@ for _ in range(1000):
 	# feed the batch in placeholder variables
 	# this is stochastic training
 	sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+
+# model evaluation
+# model to evaluate accuracy
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+# run the network model on test images and run the accuracy model
+# on output for test images
+print(sess.run(accuracy,
+	feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+
+# read the USPS data
+directory = './../data/Test'
+[images, lbls] = davinci.readUSPSTestImagesAndLbls(directory)
+
+images = np.array(images)
+lbls = np.array(lbls)
+
+# run model on USPS images and pring accuracy
+print(sess.run(accuracy,
+	feed_dict={x: images, y_: lbls}))
+
+davinci.plotImage(images[0, :])
+davinci.plotImage(mnist.train.images[])
