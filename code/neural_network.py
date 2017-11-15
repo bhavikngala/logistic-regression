@@ -54,18 +54,28 @@ uspsTrainImgs = np.array(uspsTrainImgs)
 uspsTrainLbls = np.array(uspsTrainLbls)
 
 # concatenate data with mnist data
-mnist.train.images = np.concatenate([mnist.train.images,
+mnist_usps_train_imgs = np.concatenate([mnist.train.images,
 	uspsTrainImgs])
-mnist.train.labels = np.concatenate([mnist.train.lables,
-	uspsTrainLbls])
+mnist_usps_train_lbls = np.concatenate([mnist.train.labels,
+	uspsTrainLbls]) 
+N, _ = mnist_usps_train_imgs.shape
 
 # run training step 1000 times
+'''
 for _ in range(1000):
 	# batch of random 100 images
 	batch_xs, batch_ys = mnist.train.next_batch(100)
 	# feed the batch in placeholder variables
 	# this is stochastic training
 	sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+'''
+for _ in range(1000):
+	for i in range(int(N/100)):
+		lowerBound = i * 100
+		upperBound = min((i+1)*100, N)
+		sess.run(train_step, feed_dict={
+			x: mnist_usps_train_imgs[lowerBound:upperBound, :],
+			y_:mnist_usps_train_lbls[lowerBound:upperBound, :]})
 
 # model evaluation
 # model to evaluate accuracy
@@ -89,4 +99,4 @@ print(sess.run(accuracy,
 	feed_dict={x: images, y_: lbls}))
 
 davinci.plotImage(images[0, :])
-davinci.plotImage(mnist.train.images[])
+davinci.plotImage(mnist.train.images[0, :])
