@@ -27,15 +27,17 @@ def batchReadAndResizeImages(directory, outputSize, interpMethod):
 def normalizeImage(img):
 	return img/255
 
-def generateImageTensorsAndLbls(directory, numbers):
+def readUSPSTestImagesAndLbls(directory):
 	images = []
 	lbls = []
 	for number in numbers:
-		imgs = batchReadAndResizeImages(directory+'/'+number,
+		images = batchReadAndResizeImages(directory+'/'+number,
 			[28 28], 'bilinear')
-		lbl = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-		lbl[number] = 1
-		lbl = [lbl] * imgs.shape[0]
 
-		images = images + imgs
-		lbls = lbls + lbl
+	for i in range(0, 10):
+		lbl = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+		lbl[i] = 1
+		lbl = [lbl] * 150
+		lbls = lbl + lbls
+
+	return [images, lbls]
