@@ -50,7 +50,7 @@ def readUSPSTrainImagesAndLbls(directory):
 
 	for i in range(0, 10):
 		imgs = batchReadAndResizeImages(directory+'/'+str(i),
-			[25, 28], 'bilinear')
+			[28, 28], 'bilinear')
 		images = images + imgs
 		lbl = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 		lbl[i] = 1
