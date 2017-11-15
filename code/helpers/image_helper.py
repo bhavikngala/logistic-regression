@@ -26,3 +26,16 @@ def batchReadAndResizeImages(directory, outputSize, interpMethod):
 
 def normalizeImage(img):
 	return img/255
+
+def generateImageTensorsAndLbls(directory, numbers):
+	images = []
+	lbls = []
+	for number in numbers:
+		imgs = batchReadAndResizeImages(directory+'/'+number,
+			[28 28], 'bilinear')
+		lbl = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+		lbl[number] = 1
+		lbl = [lbl] * imgs.shape[0]
+
+		images = images + imgs
+		lbls = lbls + lbl
