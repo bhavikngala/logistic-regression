@@ -42,6 +42,23 @@ def readUSPSTestImagesAndLbls(directory):
 
 	return [images, lbls]
 
+def readUSPSTrainImagesAndLbls(directory):
+	images = []
+	lbls = []
+	
+	images = batchReadAndResizeImages(directory, [28, 28], 'bilinear')
+
+	for i in range(0, 10):
+		imgs = batchReadAndResizeImages(directory+'/'+str(i),
+			[25, 28], 'bilinear')
+		images = images + imgs
+		lbl = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+		lbl[i] = 1
+		lbl = [lbl] * len(imgs)
+		lbls = lbls + lbl
+
+	return [images, lbls]
+
 # function plots an image, input is flattened image
 def plotImage(flatImg):
 	img = np.resize(flatImg, [28, 28])
