@@ -30,9 +30,8 @@ def normalizeImage(img):
 def readUSPSTestImagesAndLbls(directory):
 	images = []
 	lbls = []
-	for number in numbers:
-		images = batchReadAndResizeImages(directory+'/'+number,
-			[28 28], 'bilinear')
+	
+	images = batchReadAndResizeImages(directory, [28, 28], 'bilinear')
 
 	for i in range(0, 10):
 		lbl = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
