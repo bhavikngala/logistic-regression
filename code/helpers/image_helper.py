@@ -1,6 +1,7 @@
 from scipy import misc
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 def readImage(filename):
 	return misc.imread(filaname)
@@ -40,3 +41,8 @@ def readUSPSTestImagesAndLbls(directory):
 		lbls = lbl + lbls
 
 	return [images, lbls]
+
+# function plots an image, input is flattened image
+def plotImage(flatImg):
+	img = np.resize(flatImg, [28, 28])
+	showImage(img)
