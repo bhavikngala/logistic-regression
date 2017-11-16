@@ -42,12 +42,13 @@ class backPropNN:
 		for i in range(1, self.numLayers - 1):
 			z.append(np.matmul(a[i-1], (self.weights[i]).T) \
 				+ self.biases[i]) 
-			a.append(sigmoid(z))
+			a.append(sigmoid(self, z))
 		return [z, a]
 
 	# compute the vector sigma for output layer
 	# δL=∇aC⊙σ′(zL)
-	def computeOutputError(self):
+	def computeOutputError(self, actualOutputs):
+
 		return None
 
 	# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl) 
@@ -83,3 +84,10 @@ class backPropNN:
 	def sigmoid(self, input):
 		input = 1 + np.exp(input)
 		return 1/input
+
+	# one hot vectorization
+	def oneHotVectorization(self, vector):
+		maxProbIndex = np.argmax(vector)
+		vector[:] = 0
+		vector[maxProbIndex] = 1
+		return vector
