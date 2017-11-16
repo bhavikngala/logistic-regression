@@ -19,8 +19,10 @@ class backPropNN:
 		# initialize weights and biases for each layer
 		# weights for 1st layer are always 1
 		# biases for 1st layer are always 0
-		self.weights = [np.ones([layerSizes[0], 1])]
-		self.biases = [np.zeros([layerSizes[0], 1])]
+		self.weights = []
+		self.biases = []
+		#self.weights = [np.ones([layerSizes[0], 1])]
+		#self.biases = [np.zeros([layerSizes[0], 1])]
 				
 		for i in range(1, len(layerSizes)):
 			self.weights.append(np.zeros([layerSizes[i],
@@ -30,8 +32,18 @@ class backPropNN:
 	# for each l=2..L compute
 	# 1. zl=wlal−1+bl
 	# 2. al=σ(zl)
-	def feedForward(self):
-		return None
+	def feedForward(self, x):
+		z = []
+		a = []
+
+		z.append(np.matmul(x, (self.weights[0]).T) + self.biases[0])
+		a.append(self.sigmoid(z[0]))
+
+		for i in range(1, self.numLayers - 1):
+			z.append(np.matmul(a[i-1], (self.weights[i]).T) \
+				+ self.biases[i]) 
+			a.append(sigmoid(z))
+		return [z, a]
 
 	# compute the vector sigma for output layer
 	# δL=∇aC⊙σ′(zL)
