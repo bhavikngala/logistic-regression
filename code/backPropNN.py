@@ -47,9 +47,12 @@ class backPropNN:
 
 	# compute the vector sigma for output layer
 	# δL=∇aC⊙σ′(zL)
-	def computeGradientOfErrorInOutput(self, networkOutput, actualOutputs):
+	def computeErrorInOutputLayerNeurons(self, networkOutput,
+		actualOutputs, networkZ):
 		networkOutput = self.oneHotVectorization(self, networkOutput)
-		return (networkOutput - actualOutputs)
+		dC = networkOutput - actualOutputs
+		dSigmoid = self.derivativeOfSigmoid(net)
+		return dC * derivativeOfSigmoid(self, networkZ)
 
 	# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl) 
 	def backPropogateError(self):
@@ -82,8 +85,13 @@ class backPropNN:
 
 	# apply sigmoid to output
 	def sigmoid(self, input):
-		input = 1 + np.exp(input)
+		input = 1 + np.exp(-1 * input)
 		return 1/input
+
+	# derivative of sigmoid function
+	def derivativeOfSigmoid(self, input):
+		expInput = np.exp(input)
+		return expInput/((1+expInput)*(1+expInput))
 
 	# one hot vectorization
 	def oneHotVectorization(self, vector):
