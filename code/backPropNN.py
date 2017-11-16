@@ -78,3 +78,8 @@ class backPropNN:
 	# run stochastic gradient descent
 	def stochasticGradientDescent(self):
 		return None
+
+	# apply sigmoid to output
+	def sigmoid(self, input):
+		input = 1 + np.exp(input)
+		return 1/input
