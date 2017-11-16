@@ -55,8 +55,15 @@ class backPropNN:
 		return dC * derivativeOfSigmoid(self, networkZ)
 
 	# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl) 
-	def backPropogateError(self):
-		return None
+	def backPropogateError(self, z, a, outputSigma):
+		hiddenLayerSigma = [None] * (len(self.numLayers) - 1)
+		hiddenLayerSigma[-1] = outputSigma
+
+		for i in range(len(hiddenLayerSigma) - 2, -1, -1):
+			hiddenLayerSigma[i] = \
+				(np.matmul(self.weights[i+1], hiddenLayerSigma) *
+				self.derivativeOfSigmoid(z[i]))
+		return hiddenLayerSigma
 
 	# gradient of cost function
 	# ∂C/∂wljk=al−1kδlj and ∂C/∂blj=δlj
