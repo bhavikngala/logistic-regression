@@ -47,9 +47,9 @@ class backPropNN:
 
 	# compute the vector sigma for output layer
 	# δL=∇aC⊙σ′(zL)
-	def computeOutputError(self, actualOutputs):
-
-		return None
+	def computeGradientOfErrorInOutput(self, networkOutput, actualOutputs):
+		networkOutput = self.oneHotVectorization(self, networkOutput)
+		return (networkOutput - actualOutputs)
 
 	# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl) 
 	def backPropogateError(self):
