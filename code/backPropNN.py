@@ -6,15 +6,11 @@ import numpy as np
 class backPropNN:
 
 	# class instantiation/constructor
-	def __init__(self, layerSizes, learningRate, l2Lambda):
+	def __init__(self, layerSizes):
 		# number of layers in the network
 		self.numLayers = len(layerSizes)
 		# number of neurons in each layer
 		self.layerSizes = layerSizes
-		# learning rate for SGD
-		self.learningRate = learningRate
-		# growth decay regularizer
-		self.l2Lambda = l2Lambda
 
 		# initialize weights and biases for each layer
 		# weights for 1st layer are always 1
@@ -67,8 +63,12 @@ class backPropNN:
 
 	# gradient of cost function
 	# ∂C/∂wljk=al−1kδlj and ∂C/∂blj=δlj
-	def errorGradient(self):
-		return None
+	def errorGradientWRTWeights(self, a, sigmas):
+		errorGradientWRTWeights = []
+
+		for aLMinusOne, sigmaL in zip(a[:-1], sigmas):
+			errorGradientWRTWeights.append(aLMinusOne * sigmaL)
+		return errorGradientWRTWeights
 
 	# train the network
 	def train(self):
