@@ -112,9 +112,23 @@ class backPropNN:
 					self, a, hiddenLayerSigma + outputSigma)
 
 				# step 5
-				self.updateWeightsAndBiases(self,
+				self.updateNetworkWeightsAndBiases(self,
 					errorGradientWRTWeights, 
-					hiddenLayerSigma + outputSigma)
+					hiddenLayerSigma + outputSigma,
+					len(range(lowerBound, upperBound)))
+
+	def updateNetworkWeightsAndBiases(self, errorGradientWRTWeights,
+		errorGradientWRTbiases, learningRate, l2Lambda, m):
+		for i in range(len(errorGradientWRTbiases)):
+			errorW = errorGradientWRTWeights[i] + \
+				((l2Lambda * self.weights[i+1])/m)
+			errorB = errorGradientWRTbiases[i] + \
+				((l2Lambda * self.biases[i+1])/m)
+
+			self.weights[i+1] = self.weights[i+1] - \
+				(learningRate * errorW)
+			self.biases[i+1] = self.biases[i+1] - \
+				(learningRate * errorB) 
 
 	# classify test input
 	def classify(self):
