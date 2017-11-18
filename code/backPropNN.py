@@ -133,17 +133,23 @@ class backPropNN:
 	# classify test input
 	def classify(self, x):
 		[_, a] = self.feedforward(self, x)
-		output = a[-1]
-
-		return None
+		return self.oneHotVectorization(self, a[-1])
 
 	# network evaluation
 	def evaluateNetwork(self):
 		return None
 
 	# compute classfication error
-	def classificationError(self):
-		return None
+	def classificationError(self, y, y_):
+		error = 0
+
+		yClasses = np.argmax(y, axis=1)
+		y_Classes = np.argmax(y_, axis=1)
+
+		diff = yClasses - y_Classes
+
+		return 1 - ((np.nonzero(diff == 0))[0].shape[0]/y.shape[0])
+
 
 
 	# apply sigmoid to output
