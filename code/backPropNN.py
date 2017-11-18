@@ -71,8 +71,50 @@ class backPropNN:
 		return errorGradientWRTWeights
 
 	# train the network
-	def train(self):
+	def train(self, x, y, epochs, learningRate, l2Lambda,
+		miniBatchSize):
+		self.stochasticGradientDescent(self, x, y, epochs, 
+			learningRate, l2Lambda, miniBatchSize)
 		return None
+
+	# run stochastic gradient descent
+	def stochasticGradientDescent(self, x, y, epochs, learningRate,
+		l2Lambda, miniBatchSize):
+		N = x.shape[0]
+
+		for i in range(epochs):
+			for j in range(int(N/miniBatchSize)):
+				lowerBound = j * miniBatchSize
+				upperBound = min((j+1)*miniBatchSize, N)
+
+				# step 1 - feedforward - compute error at each layer
+				# Input x: Set the corresponding activation 
+				# a1 for the input layer.
+				# Feedforward: For each l=2,3,…,L
+				# compute zl=wlal−1+bl and al=σ(zl).
+				[z, a] = self.feedforward(self,
+					x[lowerBound:upperBound, :])
+
+				# step 2 - compute error in output layer neurons
+				# Output error δL: Compute the vector δL=∇aC⊙σ′(zL).
+				outputSigma = \
+					self.computeErrorInOutputLayerNeurons(self,
+					a[-1], y[lowerBound:upperBound, :],
+					networkZ[-1])
+
+				# step 3 - Backpropagate the error: 
+				# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl).
+				hiddenLayerSigma = self.backPropogateError(self, z, a
+					outputSigma)
+
+				# step 4 - compute derivative of cost wrt weights
+				errorGradientWRTWeights = self.errorGradientWRTWeights(
+					self, a, hiddenLayerSigma + outputSigma)
+
+				# step 5
+				self.updateWeightsAndBiases(self,
+					errorGradientWRTWeights, 
+					hiddenLayerSigma + outputSigma)
 
 	# classify test input
 	def classify(self):
@@ -86,9 +128,6 @@ class backPropNN:
 	def classificationError(self):
 		return None
 
-	# run stochastic gradient descent
-	def stochasticGradientDescent(self):
-		return None
 
 	# apply sigmoid to output
 	def sigmoid(self, input):
