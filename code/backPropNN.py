@@ -168,3 +168,13 @@ class backPropNN:
 			vector[i, :] = 0
 			vector[i, maxProbIndex] = 1
 		return vector
+
+	# describe network, number of layers, number of neurons
+	# weight and bias shapes
+	def describeNetwork(self):
+		print("number of layers in the network:", self.numLayers)
+		print("number of neurons in each layer:", self.layerSizes)
+
+		for i in range(len(self.weights)):
+			print("shape of weights and biases in layer", str(i), \
+				":", self.weights[i].shape, self.biases[i].shape)
