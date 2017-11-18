@@ -136,8 +136,9 @@ class backPropNN:
 		return self.oneHotVectorization(self, a[-1])
 
 	# network evaluation
-	def evaluateNetwork(self):
-		return None
+	def evaluateNetwork(self, x, y_):
+		y = self.classify(self, x)
+		return self.classificationError(self, y, y_)
 
 	# compute classfication error
 	def classificationError(self, y, y_):
@@ -149,8 +150,6 @@ class backPropNN:
 		diff = yClasses - y_Classes
 
 		return 1 - ((np.nonzero(diff == 0))[0].shape[0]/y.shape[0])
-
-
 
 	# apply sigmoid to output
 	def sigmoid(self, input):
