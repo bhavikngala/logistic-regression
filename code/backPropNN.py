@@ -131,7 +131,10 @@ class backPropNN:
 				(learningRate * errorB) 
 
 	# classify test input
-	def classify(self):
+	def classify(self, x):
+		[_, a] = self.feedforward(self, x)
+		output = a[-1]
+
 		return None
 
 	# network evaluation
@@ -155,7 +158,8 @@ class backPropNN:
 
 	# one hot vectorization
 	def oneHotVectorization(self, vector):
-		maxProbIndex = np.argmax(vector)
-		vector[:] = 0
-		vector[maxProbIndex] = 1
+		for i in range(vector.shape[0]):
+			maxProbIndex = np.argmax(vector[i, :])
+			vector[i, :] = 0
+			vector[i, maxProbIndex] = 1
 		return vector
