@@ -18,7 +18,7 @@ class backPropNN:
 		self.weights = []
 		self.biases = []
 		self.weights = [np.ones([1, layerSizes[0]])]
-		self.biases = [np.zeros([layerSizes[0]])]
+		self.biases = [np.zeros([1, layerSizes[0]])]
 				
 		for i in range(1, len(layerSizes)):
 			self.weights.append(np.zeros([layerSizes[i],
@@ -50,10 +50,7 @@ class backPropNN:
 		networkOutput = self.oneHotVectorization(networkOutput)
 		dC = networkOutput - actualOutputs
 		dSigmoid = self.derivativeOfSigmoid(networkZ)
-		outputLayerSigma = np.sum((dC * dSigmoid), axis=0)/\
-			networkOutput.shape[0]
-		return np.reshape(outputLayerSigma,
-			[outputLayerSigma.shape[0], 1])
+		return dSigmoid
 
 	# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl) 
 	def backPropogateError(self, z, a, outputSigma):
@@ -61,14 +58,14 @@ class backPropNN:
 		hiddenLayerSigma = [None] * (self.numLayers - 1)
 		hiddenLayerSigma[-1] = outputSigma
 
+		#print('length of sigmas array:', len(hiddenLayerSigma))
+
 		for i in range(len(hiddenLayerSigma) - 2, -1, -1):
-			print('shape of weights in the next layer:',
-				self.weights[i+2].shape)
-			print('shape of hiddenlayersigma in the next layer:',
-				hiddenLayerSigma[i+1].shape)
 			hiddenLayerSigma[i] = \
-				(np.matmul(self.weights[i+2], hiddenLayerSigma[i+1])\
-					* self.derivativeOfSigmoid(z[i]))
+				(np.matmul(hiddenLayerSigma[i+1], self.weights[i+2])\
+					* self.derivativeOfSigmoid(z[i+1]))
+			#print('shape of sigma in layer', str(i),
+			#	':', hiddenLayerSigma[i].shape)
 		return hiddenLayerSigma
 
 	# gradient of cost function
@@ -77,8 +74,31 @@ class backPropNN:
 		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside errorGradientWRTWeights()')
 		errorGradientWRTWeights = []
 
+		print('len of a:', len(a))
+		print('len of sigmas:', len(sigmas))
+
 		for aLMinusOne, sigmaL in zip(a[:-1], sigmas):
-			errorGradientWRTWeights.append(aLMinusOne * sigmaL)
+			print('shape of aLMinusOne', aLMinusOne.shape)
+			print('shape of sigmaL', sigmaL.shape)
+			'''
+			activations for each input will be multiplied by
+			neuron errors for that corresponding neuros
+			take average for all the w*sigma for inputs in batch
+			refer the photo of the writings on green board at home
+			'''
+			errorGradientWRTWeightsInCurrentLayer = \
+				np.zeros([sigmaL.shape[1], aLMinusOne.shape[1]])
+			for a,s in zip(aLMinusOne, sigmaL):
+				s = np.reshape(s, [s.shape[0], 1])
+
+				errorGradientWRTWeightsInCurrentLayer = \
+					errorGradientWRTWeightsInCurrentLayer + (s*a)
+
+			errorGradientWRTWeightsInCurrentLayer = \
+				errorGradientWRTWeightsInCurrentLayer/sigmaL.shape[0]
+
+			errorGradientWRTWeights.append(
+				errorGradientWRTWeightsInCurrentLayer)
 		return errorGradientWRTWeights
 
 	# train the network
@@ -104,24 +124,29 @@ class backPropNN:
 				# a1 for the input layer.
 				# Feedforward: For each l=2,3,…,L
 				# compute zl=wlal−1+bl and al=σ(zl).
+				print('###########################step 1 - feedforward')
 				[z, a] = self.feedForward(x[lowerBound:upperBound, :])
 
 				# step 2 - compute error in output layer neurons
 				# Output error δL: Compute the vector δL=∇aC⊙σ′(zL).
+				print('###########################step 2 - output layer sigma')
 				outputSigma = \
 					self.computeErrorInOutputLayerNeurons(a[-1],
 						y[lowerBound:upperBound, :], z[-1])
 
 				# step 3 - Backpropagate the error: 
 				# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl).
+				print('###########################step 3 - all layer sigmas')
 				allLayersSigma = self.backPropogateError(z, a
 					, outputSigma)
 
 				# step 4 - compute derivative of cost wrt weights
+				print('###########################step 4 - error gradients')
 				errorGradientWRTWeights = self.errorGradientWRTWeights(
 					a, allLayersSigma)
 
 				# step 5
+				print('###########################step 5 - update weights')
 				self.updateNetworkWeightsAndBiases(errorGradientWRTWeights, 
 					allLayersSigma, len(range(lowerBound, upperBound)))
 
