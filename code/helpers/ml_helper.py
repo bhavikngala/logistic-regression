@@ -66,6 +66,7 @@ def computeWeightsSetUsingSGD(designMatrix, ouputData, learningRate,
 	weights = np.zeros([K, M])
 
 	for epoch in range(epochs):
+		#print('epoch', epoch)
 		for i in range(int(N/batchSize)):
 			# determine the inputs/outputs in batch
 			lowerBound = i * batchSize
@@ -82,36 +83,85 @@ def computeWeightsSetUsingSGD(designMatrix, ouputData, learningRate,
 				predictedClasses, target)
 
 			# add regularizer
-			error = (errorGradients + l2Lambda * weights)/batchSize
+			error = (errorGradients + (l2Lambda * weights))/\
+				len(range(lowerBound, upperBound))
 
 			# update weights
-			weights = weights - learningRate * errror
+			weights = weights - learningRate * error
 
 	return weights
 
+def computeWeightsUsingStochasticGradientDescentTake2(designMatrix,
+	outputData, learningRate, epochs, batchSize, l2Lambda):
+	N, M = designMatrix.shape
+	K = outputData.shape[1]
+	weights = np.random.rand(M, K)
+	print('shape of weights matrix:', weights.shape)
+
+	for epoch in range(epochs):
+		print('epoch:', str(epoch))
+		for i in range(int(N/batchSize)):
+			lowerBound = i * batchSize
+			upperBound = min((i + 1) * batchSize, N)
+
+			y = np.matmul(designMatrix[lowerBound:upperBound, :],
+				weights)
+
+			y = np.exp(y)
+
+			y[np.isnan(y)] = 0
+			y[np.isneginf(y)] = -1
+			y[np.isposinf(y)] = 1
+
+			y_sum = np.sum(y, axis=1)
+			y_sum = np.reshape(y_sum, [y_sum.shape[0], 1])
+
+			y = y/y_sum
+			y = representPredictionProbsAsOneHotVector(y)
+
+			dy = y - outputData[lowerBound:upperBound, :]
+
+			delta_e = np.zeros(weights.shape)
+
+			for dyrow, inputrow in zip(dy,
+				designMatrix[lowerBound:upperBound, :]):
+				inputrow = np.reshape(inputrow, [inputrow.shape[0], 1])
+
+				delta_e += (dyrow * inputrow)
+
+			delta_e = delta_e / (len(range(lowerBound,upperBound)))
+
+			weights -= delta_e
+
+	return weights.T
+
 def predictClass(data, weights):
-	predictedClasses = np.zeros([data,shape[0], weights.shape[0]])
-	data = np.insert(data, 0, 1, axis=1)
+	predictedClasses = np.zeros([data.shape[0], weights.shape[0]])
 
 	rowIndex = 0
 	for singleData in data:
 		classProbNum = np.sum(np.multiply(singleData, weights),
 			axis=1)
-		classProbs = classProbNum/np.sum(classProbNum)
-		predictedClasses[rowIndex, :] = classProbs
+		if np.sum(weights) > 0:
+			classProbNum = classProbNum/np.sum(classProbNum)
+		predictedClasses[rowIndex, :] = classProbNum
 		rowIndex = rowIndex + 1
 
 	return predictedClasses
 
 def computeErrorGradient(data, predictedClasses, target):
+	print('inside computeErrorGradient function')
 	errorGradients = np.zeros([predictedClasses.shape[1],
-		data.shape[0]])
+		data.shape[1]])
 
 	diff = predictedClasses - target
-	
+	print('shape of diff:', diff.shape)
+
 	for i in range(predictedClasses.shape[1]):
+		diffCol = np.reshape(diff[:, i],
+			[predictedClasses.shape[0], 1])
 		errorGradients[i, :] = \
-			np.sum(np.multiply(diff[:, i], data), axis=0)
+			np.sum(np.multiply(diffCol, data), axis=0)
 
 	return errorGradients
 
