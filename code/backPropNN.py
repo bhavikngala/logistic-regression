@@ -258,3 +258,16 @@ class backPropNN:
 		# save biases
 		ironman.writeNumpyArrayToFile(directory, 'biases.txt',
 			self.biases)
+
+	def loadNetwork(self, directory):
+		# load layer sizes
+		self.layerSizes = (ironman.readNumpyArrayFromFile(
+			directory+'/layerSizes.txt')).tolist()
+		# set num layers
+		self.numLayers = len(layerSizes)
+		# load weights
+		self.weights = (ironman.readNumpyArrayFromFile(
+			directory+'/weights.txt'))
+		# load biases
+		self.biases = (ironman.readNumpyArrayFromFile(
+			directory+'/biases.txt'))
