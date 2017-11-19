@@ -22,9 +22,9 @@ class backPropNN:
 		self.biases = [np.zeros([1, layerSizes[0]])]
 				
 		for i in range(1, len(layerSizes)):
-			self.weights.append(np.zeros([layerSizes[i-1],
-				layerSizes[i]]))
-			self.biases.append(np.zeros([1, layerSizes[i]]))
+			self.weights.append(np.random.rand(layerSizes[i-1],
+				layerSizes[i]))
+			self.biases.append(np.random.rand(1, layerSizes[i]))
 
 	# for each l=2..L compute
 	# 1. zl=wlal−1+bl
@@ -43,7 +43,7 @@ class backPropNN:
 			z.append(np.matmul(a[i-1], self.weights[i]) \
 				+ self.biases[i]) 
 			a.append(self.sigmoid(z[i]))
-			
+
 		return [z, a]
 
 	# compute the vector sigma for output layer
@@ -51,9 +51,8 @@ class backPropNN:
 	def computeErrorInOutputLayerNeurons(self, networkOutput,
 		actualOutputs, networkZ):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside computeErrorInOutputLayerNeurons()')
-		networkOutput = self.oneHotVectorization(networkOutput)
 		dC = networkOutput - actualOutputs
-		dSigmoid = self.derivativeOfSigmoid(networkZ)
+		dSigmoid = dC * self.derivativeOfSigmoid(networkZ)
 		return dSigmoid
 
 	# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl) 
@@ -64,8 +63,9 @@ class backPropNN:
 
 		for i in range(len(hiddenLayerSigma) - 2, -1, -1):
 			hiddenLayerSigma[i] = \
-				(np.matmul(hiddenLayerSigma[i+1], self.weights[i+2])\
+				(np.matmul(hiddenLayerSigma[i+1], self.weights[i+2].T)\
 					* self.derivativeOfSigmoid(z[i+1]))
+
 		return hiddenLayerSigma
 
 	# gradient of cost function
@@ -77,20 +77,19 @@ class backPropNN:
 		for aLMinusOne, sigmaL in zip(a[:-1], sigmas):
 			'''
 			activations for each input will be multiplied by
-			neuron errors for that corresponding neuros
+			neuron errors for that corresponding neurons
 			take average for all the w*sigma for inputs in batch
 			refer the photo of the writings on green board at home
 			'''
 			errorGradientWRTWeightsInCurrentLayer = \
-				np.zeros([sigmaL.shape[1], aLMinusOne.shape[1]])
+				np.zeros([aLMinusOne.shape[1], sigmaL.shape[1]])
+
 			for a,s in zip(aLMinusOne, sigmaL):
-				s = np.reshape(s, [s.shape[0], 1])
+				a = np.reshape(a, [a.shape[0], 1])
 
-				errorGradientWRTWeightsInCurrentLayer = \
-					errorGradientWRTWeightsInCurrentLayer + (s*a)
+				errorGradientWRTWeightsInCurrentLayer += s * a
 
-			errorGradientWRTWeightsInCurrentLayer = \
-				errorGradientWRTWeightsInCurrentLayer/sigmaL.shape[0]
+			errorGradientWRTWeightsInCurrentLayer /= sigmaL.shape[0]
 
 			errorGradientWRTWeights.append(
 				errorGradientWRTWeightsInCurrentLayer)
@@ -152,22 +151,7 @@ class backPropNN:
 
 	def updateNetworkWeightsAndBiases(self, errorGradientWRTWeights,
 		errorGradientWRTbiases, learningRate, l2Lambda, m):
-		'''print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside updateNetworkWeightsAndBiases()')
-		
-		print('\n\n\n')
-		self.describeArrayShapesInList(errorGradientWRTbiases,
-			"layer sigmas")
-		print('\n\n\n')
-		self.describeArrayShapesInList(errorGradientWRTWeights,
-			"error gradients wrt weights")
-		print('\n\n\n')
-		self.describeArrayShapesInList(self.weights,
-			"network weights")
-		print('\n\n\n')
-		self.describeArrayShapesInList(self.biases,
-			"network biases")
-		print('\n\n\n')'''
-
+		# print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside updateNetworkWeightsAndBiases()')
 		
 		for i in range(len(errorGradientWRTbiases)):
 			errorW = errorGradientWRTWeights[i]
@@ -185,6 +169,7 @@ class backPropNN:
 	# network evaluation
 	def evaluateNetwork(self, x, y_):
 		y = self.classify(x)
+		print('shape of classification:', y.shape)
 		classificationerror = self.classificationError(y, y_)
 		print('classification error is:', classificationerror)
 		return classificationerror
@@ -192,14 +177,12 @@ class backPropNN:
 	# compute classfication error
 	def classificationError(self, y, y_):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside classificationError()')
-		error = 0
-
 		yClasses = np.argmax(y, axis=1)
 		y_Classes = np.argmax(y_, axis=1)
 
 		diff = yClasses - y_Classes
 
-		return 1 - ((np.nonzero(diff == 0))[0].shape[0]/y.shape[0])
+		return (np.nonzero(diff != 0))[0].shape[0]/y.shape[0]
 
 	# apply sigmoid to output
 	def sigmoid(self, input):
