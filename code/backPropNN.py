@@ -184,7 +184,7 @@ class backPropNN:
 	# classify test input
 	def classify(self, x):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside classify()')
-		[_, a] = self.feedforward(x)
+		[_, a] = self.feedForward(x)
 		return self.oneHotVectorization(a[-1])
 
 	# network evaluation
@@ -215,8 +215,8 @@ class backPropNN:
 	# derivative of sigmoid function
 	def derivativeOfSigmoid(self, input):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside derivativeOfSigmoid()')
-		expInput = np.exp(input)
-		return expInput/((1+expInput)*(1+expInput))
+		sigmoid = self.sigmoid(input)
+		return sigmoid * (1 - sigmoid)
 
 	# one hot vectorization
 	def oneHotVectorization(self, vector):
@@ -250,24 +250,24 @@ class backPropNN:
 
 	def saveNetwork(self, directory):
 		# save layer sizes
-		ironman.writeNumpyArrayToFile(directory, 'layerSizes.txt',
+		ironman.writeNumpyArrayToFile(directory, 'layerSizes',
 			self.layerSizes)
 		# save weights
-		ironman.writeNumpyArrayToFile(directory, 'weights.txt',
+		ironman.writeNumpyArrayToFile(directory, 'weights',
 			self.weights)
 		# save biases
-		ironman.writeNumpyArrayToFile(directory, 'biases.txt',
+		ironman.writeNumpyArrayToFile(directory, 'biases',
 			self.biases)
 
 	def loadNetwork(self, directory):
 		# load layer sizes
 		self.layerSizes = (ironman.readNumpyArrayFromFile(
-			directory+'/layerSizes.txt')).tolist()
+			directory+'layerSizes.npy')).tolist()
 		# set num layers
 		self.numLayers = len(layerSizes)
 		# load weights
 		self.weights = (ironman.readNumpyArrayFromFile(
-			directory+'/weights.txt'))
+			directory+'weights.npy'))
 		# load biases
 		self.biases = (ironman.readNumpyArrayFromFile(
-			directory+'/biases.txt'))
+			directory+'biases.npy'))
