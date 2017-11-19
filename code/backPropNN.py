@@ -1,4 +1,5 @@
 import numpy as np
+from helpers import fileHelper as ironman
 
 # Reference:
 # http://neuralnetworksanddeeplearning.com/chap2.html
@@ -29,7 +30,7 @@ class backPropNN:
 	# 1. zl=wlal−1+bl
 	# 2. al=σ(zl)
 	def feedForward(self, x):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside feedForward()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside feedForward()')
 		z = []
 		a = []
 
@@ -46,7 +47,7 @@ class backPropNN:
 	# δL=∇aC⊙σ′(zL)
 	def computeErrorInOutputLayerNeurons(self, networkOutput,
 		actualOutputs, networkZ):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside computeErrorInOutputLayerNeurons()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside computeErrorInOutputLayerNeurons()')
 		networkOutput = self.oneHotVectorization(networkOutput)
 		dC = networkOutput - actualOutputs
 		dSigmoid = self.derivativeOfSigmoid(networkZ)
@@ -54,7 +55,7 @@ class backPropNN:
 
 	# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl) 
 	def backPropogateError(self, z, a, outputSigma):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside backPropogateError()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside backPropogateError()')
 		hiddenLayerSigma = [None] * (self.numLayers - 1)
 		hiddenLayerSigma[-1] = outputSigma
 
@@ -71,15 +72,10 @@ class backPropNN:
 	# gradient of cost function
 	# ∂C/∂wljk=al−1kδlj and ∂C/∂blj=δlj
 	def errorGradientWRTWeights(self, a, sigmas):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside errorGradientWRTWeights()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside errorGradientWRTWeights()')
 		errorGradientWRTWeights = []
 
-		print('len of a:', len(a))
-		print('len of sigmas:', len(sigmas))
-
 		for aLMinusOne, sigmaL in zip(a[:-1], sigmas):
-			print('shape of aLMinusOne', aLMinusOne.shape)
-			print('shape of sigmaL', sigmaL.shape)
 			'''
 			activations for each input will be multiplied by
 			neuron errors for that corresponding neuros
@@ -104,17 +100,18 @@ class backPropNN:
 	# train the network
 	def train(self, x, y, epochs, learningRate, l2Lambda,
 		miniBatchSize):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside train()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside train()')
 		self.stochasticGradientDescent(x, y, epochs, 
 			learningRate, l2Lambda, miniBatchSize)
 
 	# run stochastic gradient descent
 	def stochasticGradientDescent(self, x, y, epochs, learningRate,
 		l2Lambda, miniBatchSize):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside stochasticGradientDescent()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside stochasticGradientDescent()')
 		N = x.shape[0]
 
 		for i in range(epochs):
+			print('epoch:', str(i))
 			for j in range(int(N/miniBatchSize)):
 				lowerBound = j * miniBatchSize
 				upperBound = min((j+1)*miniBatchSize, N)
@@ -124,40 +121,60 @@ class backPropNN:
 				# a1 for the input layer.
 				# Feedforward: For each l=2,3,…,L
 				# compute zl=wlal−1+bl and al=σ(zl).
-				print('###########################step 1 - feedforward')
+				#print('\n###########################step 1 - feedforward')
 				[z, a] = self.feedForward(x[lowerBound:upperBound, :])
 
 				# step 2 - compute error in output layer neurons
 				# Output error δL: Compute the vector δL=∇aC⊙σ′(zL).
-				print('###########################step 2 - output layer sigma')
+				#print('\n###########################step 2 - output layer sigma')
 				outputSigma = \
 					self.computeErrorInOutputLayerNeurons(a[-1],
 						y[lowerBound:upperBound, :], z[-1])
 
 				# step 3 - Backpropagate the error: 
 				# For each l=L−1,L−2,…,2 compute δl=((wl+1)Tδl+1)⊙σ′(zl).
-				print('###########################step 3 - all layer sigmas')
+				#print('\n###########################step 3 - all layer sigmas')
 				allLayersSigma = self.backPropogateError(z, a
 					, outputSigma)
 
 				# step 4 - compute derivative of cost wrt weights
-				print('###########################step 4 - error gradients')
+				#print('\n###########################step 4 - error gradients')
 				errorGradientWRTWeights = self.errorGradientWRTWeights(
 					a, allLayersSigma)
 
+				allLayersSigma = \
+					self.averageLayerSigmas(allLayersSigma)
+
 				# step 5
-				print('###########################step 5 - update weights')
+				#print('\n###########################step 5 - update weights')
 				self.updateNetworkWeightsAndBiases(errorGradientWRTWeights, 
-					allLayersSigma, len(range(lowerBound, upperBound)))
+					allLayersSigma, learningRate, l2Lambda,
+					len(range(lowerBound, upperBound)))
 
 	def updateNetworkWeightsAndBiases(self, errorGradientWRTWeights,
 		errorGradientWRTbiases, learningRate, l2Lambda, m):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside updateNetworkWeightsAndBiases()')
+		'''print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside updateNetworkWeightsAndBiases()')
+		
+		print('\n\n\n')
+		self.describeArrayShapesInList(errorGradientWRTbiases,
+			"layer sigmas")
+		print('\n\n\n')
+		self.describeArrayShapesInList(errorGradientWRTWeights,
+			"error gradients wrt weights")
+		print('\n\n\n')
+		self.describeArrayShapesInList(self.weights,
+			"network weights")
+		print('\n\n\n')
+		self.describeArrayShapesInList(self.biases,
+			"network biases")
+		print('\n\n\n')'''
+
+		
 		for i in range(len(errorGradientWRTbiases)):
-			errorW = (errorGradientWRTWeights[i] + \
-				(l2Lambda * self.weights[i+1]))/m
-			errorB = (errorGradientWRTbiases[i] + \
-				(l2Lambda * self.biases[i+1]))/m
+			errorW = errorGradientWRTWeights[i] + \
+				((l2Lambda * self.weights[i+1]))/m
+			errorB = errorGradientWRTbiases[i] + \
+				((l2Lambda * self.biases[i+1]))/m
 
 			self.weights[i+1] = self.weights[i+1] - \
 				(learningRate * errorW)
@@ -166,20 +183,20 @@ class backPropNN:
 
 	# classify test input
 	def classify(self, x):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside classify()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside classify()')
 		[_, a] = self.feedforward(x)
 		return self.oneHotVectorization(a[-1])
 
 	# network evaluation
 	def evaluateNetwork(self, x, y_):
-		y = self.classify(self, x)
+		y = self.classify(x)
 		classificationerror = self.classificationError(y, y_)
 		print('classification error is:', classificationerror)
 		return classificationerror
 
 	# compute classfication error
 	def classificationError(self, y, y_):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside classificationError()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside classificationError()')
 		error = 0
 
 		yClasses = np.argmax(y, axis=1)
@@ -191,19 +208,19 @@ class backPropNN:
 
 	# apply sigmoid to output
 	def sigmoid(self, input):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside sigmoid()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside sigmoid()')
 		sigmoidOutput = 1/1 + np.exp(-1 * input)
 		return sigmoidOutput
 
 	# derivative of sigmoid function
 	def derivativeOfSigmoid(self, input):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside derivativeOfSigmoid()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside derivativeOfSigmoid()')
 		expInput = np.exp(input)
 		return expInput/((1+expInput)*(1+expInput))
 
 	# one hot vectorization
 	def oneHotVectorization(self, vector):
-		print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside oneHotVectorization()')
+		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside oneHotVectorization()')
 		for i in range(vector.shape[0]):
 			maxProbIndex = np.argmax(vector[i, :])
 			vector[i, :] = 0
@@ -219,3 +236,25 @@ class backPropNN:
 		for i in range(len(self.weights)):
 			print("shape of weights and biases in layer", str(i), \
 				":", self.weights[i].shape, self.biases[i].shape)
+
+	def describeArrayShapesInList(self, list, msgString):
+		print('describing list:', msgString)
+		for l in list:
+			print(msgString, 'shape:', l.shape)
+
+	def averageLayerSigmas(self, layerSigmas):
+		for i in range(len(layerSigmas)):
+			N, _ = layerSigmas[i].shape
+			layerSigmas[i] = np.sum(layerSigmas[i], axis=0)/N
+		return layerSigmas
+
+	def saveNetwork(self, directory):
+		# save layer sizes
+		ironman.writeNumpyArrayToFile(directory, 'layerSizes.txt',
+			self.layerSizes)
+		# save weights
+		ironman.writeNumpyArrayToFile(directory, 'weights.txt',
+			self.weights)
+		# save biases
+		ironman.writeNumpyArrayToFile(directory, 'biases.txt',
+			self.biases)
