@@ -131,7 +131,7 @@ def computeWeightsUsingStochasticGradientDescentTake2(designMatrix,
 
 			delta_e = delta_e / (len(range(lowerBound,upperBound)))
 
-			weights -= delta_e
+			weights -= learningRate * delta_e
 
 	return weights.T
 
