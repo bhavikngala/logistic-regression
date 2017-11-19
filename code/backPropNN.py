@@ -22,8 +22,8 @@ class backPropNN:
 		self.biases = [np.zeros([1, layerSizes[0]])]
 				
 		for i in range(1, len(layerSizes)):
-			self.weights.append(np.zeros([layerSizes[i],
-				layerSizes[i-1]]))
+			self.weights.append(np.zeros([layerSizes[i-1],
+				layerSizes[i]]))
 			self.biases.append(np.zeros([1, layerSizes[i]]))
 
 	# for each l=2..L compute
@@ -34,13 +34,16 @@ class backPropNN:
 		z = []
 		a = []
 
-		z.append(np.matmul(x, (self.weights[0]).T) + self.biases[0])
-		a.append(self.sigmoid(z[0]))
+		z.append(x)
+		# a.append(self.sigmoid(z[0]))
+		# why did i think i had to take sigmoid here???
+		a.append(z[0])
 
 		for i in range(1, self.numLayers):
-			z.append(np.matmul(a[i-1], (self.weights[i]).T) \
+			z.append(np.matmul(a[i-1], self.weights[i]) \
 				+ self.biases[i]) 
 			a.append(self.sigmoid(z[i]))
+			
 		return [z, a]
 
 	# compute the vector sigma for output layer
@@ -59,14 +62,10 @@ class backPropNN:
 		hiddenLayerSigma = [None] * (self.numLayers - 1)
 		hiddenLayerSigma[-1] = outputSigma
 
-		#print('length of sigmas array:', len(hiddenLayerSigma))
-
 		for i in range(len(hiddenLayerSigma) - 2, -1, -1):
 			hiddenLayerSigma[i] = \
 				(np.matmul(hiddenLayerSigma[i+1], self.weights[i+2])\
 					* self.derivativeOfSigmoid(z[i+1]))
-			#print('shape of sigma in layer', str(i),
-			#	':', hiddenLayerSigma[i].shape)
 		return hiddenLayerSigma
 
 	# gradient of cost function
@@ -171,15 +170,11 @@ class backPropNN:
 
 		
 		for i in range(len(errorGradientWRTbiases)):
-			errorW = errorGradientWRTWeights[i] + \
-				((l2Lambda * self.weights[i+1]))/m
-			errorB = errorGradientWRTbiases[i] + \
-				((l2Lambda * self.biases[i+1]))/m
+			errorW = errorGradientWRTWeights[i]
+			errorB = errorGradientWRTbiases[i]
 
-			self.weights[i+1] = self.weights[i+1] - \
-				(learningRate * errorW)
-			self.biases[i+1] = self.biases[i+1] - \
-				(learningRate * errorB) 
+			self.weights[i+1] -= learningRate * errorW
+			self.biases[i+1] -= learningRate * errorB
 
 	# classify test input
 	def classify(self, x):
@@ -210,6 +205,10 @@ class backPropNN:
 	def sigmoid(self, input):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside sigmoid()')
 		sigmoidOutput = 1/1 + np.exp(-1 * input)
+		# correcting overflow in np.exp
+		sigmoidOutput[np.isnan(sigmoidOutput)] = 0
+		sigmoidOutput[np.isneginf(sigmoidOutput)] = -1
+		sigmoidOutput[np.isposinf(sigmoidOutput)] = 1
 		return sigmoidOutput
 
 	# derivative of sigmoid function
