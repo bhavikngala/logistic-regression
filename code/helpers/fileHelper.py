@@ -3,11 +3,11 @@ import os
 
 def writeNumpyArrayToFile(directory, filename, nparray):
 	createDirectory(directory)
-	np.savetxt(directory + filename, nparray)
+	np.save(directory + filename, nparray)
 	# print('wrote to file:', directory, filename)
 
 def readNumpyArrayFromFile(filename):
-	return np.loadtxt(filename)
+	return np.load(filename)
 
 def directoryExists(directory):
 	return os.path.exists(directory)
