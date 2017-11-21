@@ -117,7 +117,7 @@ def computeWeightsUsingStochasticGradientDescentTake2(designMatrix,
 			y_sum = np.reshape(y_sum, [y_sum.shape[0], 1])
 
 			y = y/y_sum
-			y = representPredictionProbsAsOneHotVector(y)
+			#y = representPredictionProbsAsOneHotVector(y)
 
 			dy = y - outputData[lowerBound:upperBound, :]
 

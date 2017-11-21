@@ -20,7 +20,7 @@ def batchReadAndResizeImages(directory, outputSize, interpMethod):
 		if file.endswith('.png'):
 			img = misc.imread(directory+'/'+file, flatten=True);
 			img = resizeImage(img, outputSize, interpMethod)
-			img = normalizeImage(img)
+			img = 1 - normalizeImage(img)
 			img = img.flatten()
 			imgs.append(img)
 	return imgs
