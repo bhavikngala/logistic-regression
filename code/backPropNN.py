@@ -31,13 +31,8 @@ class backPropNN:
 	# 2. al=σ(zl)
 	def feedForward(self, x):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside feedForward()')
-		z = []
-		a = []
-
-		z.append(x)
-		# a.append(self.sigmoid(z[0]))
-		# why did i think i had to take sigmoid here???
-		a.append(z[0])
+		z = [x]
+		a = [z[0]]
 
 		for i in range(1, self.numLayers):
 			z.append(np.matmul(a[i-1], self.weights[i]) \
@@ -61,10 +56,9 @@ class backPropNN:
 		hiddenLayerSigma = [None] * (self.numLayers - 1)
 		hiddenLayerSigma[-1] = outputSigma
 
-		for i in range(len(hiddenLayerSigma) - 2, -1, -1):
-			hiddenLayerSigma[i] = \
-				(np.matmul(hiddenLayerSigma[i+1], self.weights[i+2].T)\
-					* self.derivativeOfSigmoid(z[i+1]))
+		for i in range(1, len(hiddenLayerSigma)):
+			hiddenLayerSigma[-i-1] = np.matmul(hiddenLayerSigma[-i],
+				self.weights[-i].T) * self.derivativeOfSigmoid(z[-i-1])
 
 		return hiddenLayerSigma
 
@@ -75,6 +69,8 @@ class backPropNN:
 		errorGradientWRTWeights = []
 
 		for aLMinusOne, sigmaL in zip(a[:-1], sigmas):
+			# print('shape aLMinusOne:', aLMinusOne.shape)
+			# print('shape of sigmas:', sigmaL.shape)
 			'''
 			activations for each input will be multiplied by
 			neuron errors for that corresponding neurons
@@ -84,27 +80,37 @@ class backPropNN:
 			errorGradientWRTWeightsInCurrentLayer = \
 				np.zeros([aLMinusOne.shape[1], sigmaL.shape[1]])
 
-			for a,s in zip(aLMinusOne, sigmaL):
-				a = np.reshape(a, [a.shape[0], 1])
-
-				errorGradientWRTWeightsInCurrentLayer += s * a
-
+			for a_row, s_row in zip(aLMinusOne, sigmaL):
+				a_row = np.reshape(a_row, [a_row.shape[0], 1])
+				# print('shape of oneInputErrorGradient:', oneInputErrorGradient.shape)
+				errorGradientWRTWeightsInCurrentLayer += s_row * a_row
 			errorGradientWRTWeightsInCurrentLayer /= sigmaL.shape[0]
 
 			errorGradientWRTWeights.append(
 				errorGradientWRTWeightsInCurrentLayer)
 		return errorGradientWRTWeights
 
+	def errorGradientWRTWeightsTake2(self, a, sigmas):
+		errorGrads = []
+
+		for a1, s1 in zip(a[:-1], sigmas):
+			edw = np.zeros([a1.shape[1], s1.shape[0]])
+			for a1_row in a1:
+				a1_row = np.reshape(a1_row, [a1_row.shape[0], 1])
+				edw += a1_row * s1
+			errorGrads.append(edw)
+		return errorGrads
+
 	# train the network
 	def train(self, x, y, epochs, learningRate, l2Lambda,
-		miniBatchSize):
+		miniBatchSize, test_x=None, test_y=None):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside train()')
 		self.stochasticGradientDescent(x, y, epochs, 
-			learningRate, l2Lambda, miniBatchSize)
+			learningRate, l2Lambda, miniBatchSize, test_x, test_y)
 
 	# run stochastic gradient descent
 	def stochasticGradientDescent(self, x, y, epochs, learningRate,
-		l2Lambda, miniBatchSize):
+		l2Lambda, miniBatchSize, test_x, test_y):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside stochasticGradientDescent()')
 		N = x.shape[0]
 
@@ -135,13 +141,18 @@ class backPropNN:
 				allLayersSigma = self.backPropogateError(z, a
 					, outputSigma)
 
-				# step 4 - compute derivative of cost wrt weights
-				#print('\n###########################step 4 - error gradients')
-				errorGradientWRTWeights = self.errorGradientWRTWeights(
-					a, allLayersSigma)
-
 				allLayersSigma = \
 					self.averageLayerSigmas(allLayersSigma)
+
+				# step 4 - compute derivative of cost wrt weights
+				#print('\n###########################step 4 - error gradients')
+				# errorGradientWRTWeights = self.errorGradientWRTWeights(
+				# 	a, allLayersSigma)
+				errorGradientWRTWeights = self.errorGradientWRTWeightsTake2(
+					a, allLayersSigma)
+
+				# allLayersSigma = \
+				# 	self.averageLayerSigmas(allLayersSigma)
 
 				# step 5
 				#print('\n###########################step 5 - update weights')
@@ -149,27 +160,27 @@ class backPropNN:
 					allLayersSigma, learningRate, l2Lambda,
 					len(range(lowerBound, upperBound)))
 
+			if (test_x is not None and test_y is not None) and i%5 == 0:
+				self.evaluateNetwork(test_x, test_y) 
+
 	def updateNetworkWeightsAndBiases(self, errorGradientWRTWeights,
 		errorGradientWRTbiases, learningRate, l2Lambda, m):
 		# print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside updateNetworkWeightsAndBiases()')
 		
 		for i in range(len(errorGradientWRTbiases)):
-			errorW = errorGradientWRTWeights[i]
-			errorB = errorGradientWRTbiases[i]
-
-			self.weights[i+1] -= learningRate * errorW
-			self.biases[i+1] -= learningRate * errorB
+			self.weights[i+1] -= (learningRate/m) * errorGradientWRTWeights[i]
+			self.biases[i+1] -= (learningRate/m) * errorGradientWRTbiases[i]
 
 	# classify test input
 	def classify(self, x):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside classify()')
 		[_, a] = self.feedForward(x)
-		return self.oneHotVectorization(a[-1])
+		# return self.oneHotVectorization(a[-1])
+		return a[-1]
 
 	# network evaluation
 	def evaluateNetwork(self, x, y_):
 		y = self.classify(x)
-		print('shape of classification:', y.shape)
 		classificationerror = self.classificationError(y, y_)
 		print('classification error is:', classificationerror)
 		return classificationerror
@@ -187,12 +198,12 @@ class backPropNN:
 	# apply sigmoid to output
 	def sigmoid(self, input):
 		#print('@@@@@@@@@@@@@@@@@@@@@@@@@@@inside sigmoid()')
-		sigmoidOutput = 1/1 + np.exp(-1 * input)
+		inputExp = np.exp(input)
 		# correcting overflow in np.exp
-		sigmoidOutput[np.isnan(sigmoidOutput)] = 0
-		sigmoidOutput[np.isneginf(sigmoidOutput)] = -1
-		sigmoidOutput[np.isposinf(sigmoidOutput)] = 1
-		return sigmoidOutput
+		inputExp[np.isnan(inputExp)] = 0
+		inputExp[np.isneginf(inputExp)] = -1
+		inputExp[np.isposinf(inputExp)] = 1
+		return (inputExp/(1+inputExp))
 
 	# derivative of sigmoid function
 	def derivativeOfSigmoid(self, input):
@@ -232,14 +243,14 @@ class backPropNN:
 
 	def saveNetwork(self, directory):
 		# save layer sizes
-		ironman.writeNumpyArrayToFile(directory, 'layerSizes',
-			self.layerSizes)
+		ironman.writeNumpyArrayToFile(directory, 'layerSizes.npy',
+			np.array(self.layerSizes))
 		# save weights
-		ironman.writeNumpyArrayToFile(directory, 'weights',
-			self.weights)
+		ironman.writeNumpyArrayToFile(directory, 'weights.npy',
+			np.array(self.weights))
 		# save biases
-		ironman.writeNumpyArrayToFile(directory, 'biases',
-			self.biases)
+		ironman.writeNumpyArrayToFile(directory, 'biases.npy',
+			np.array(self.biases))
 
 	def loadNetwork(self, directory):
 		# load layer sizes
@@ -249,7 +260,7 @@ class backPropNN:
 		self.numLayers = len(layerSizes)
 		# load weights
 		self.weights = (ironman.readNumpyArrayFromFile(
-			directory+'weights.npy'))
+			directory+'weights.npy')).tolist()
 		# load biases
 		self.biases = (ironman.readNumpyArrayFromFile(
-			directory+'biases.npy'))
+			directory+'biases.npy')).tolist()
