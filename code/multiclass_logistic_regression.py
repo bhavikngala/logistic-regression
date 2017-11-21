@@ -4,27 +4,9 @@ from helpers import image_helper as davinci
 from helpers import fileHelper as ironman
 
 def buildMultiClassClassifier(train_data, train_lbl,
-	vali_data, vali_lbl, numBasis, learningRate,
-	epochs, batchSize, l2Lambda, loadWeights):
-	# step 1 - kmeans - find centres and labels
-	'''
-	print('# step 1 - kmeans - find centres and labels')
-	[centroids, lbls] = dumbledore.applyKmeans2(train_data,
-		numBasis)
-
-	# step 2 - compute cluster spread inverses
-	print('# step 2 - compute cluster spread inverses')
-	clusterSpreadInvs = dumbledore.computeClusterSpreadsInvs(
-		train_data, lbls)
-	print('shape of clusterSpreadInvs', clusterSpreadInvs.shape)
-	print('\n\n\nclusterspreads \n', clusterSpreadInvs)
-
-	# step 3 - compute design matrix
-	print('# step 3 - compute design matrix')
-	designMatrix = \
-		dumbledore.computeDesignMatrixUsingGaussianBasisFunction(
-			train_data, centroids, clusterSpreadInvs)
-	'''
+	test_data, test_lbl, numBasis, learningRate,
+	epochs, batchSize, l2Lambda, loadWeights, writeWeights,
+	uspsNumeralsImgs, uspsNumeralsLbls,	uspsTestImgs, uspsTestLabels):
 
 	directory = './../results/mutliclass_lr_take01/'
 	filename = 'weights.npy'
@@ -36,41 +18,37 @@ def buildMultiClassClassifier(train_data, train_lbl,
 		designMatrix = np.insert(train_data, 0, 1, axis=1)
 		print('shape of designMatrix', designMatrix.shape)
 
-		# step 4 - compute weights - run gradient descent
-		print('# step 4 - compute weights - run gradient descent') 
 		weights = dumbledore.computeWeightsUsingStochasticGradientDescentTake2(
 			designMatrix, train_lbl, learningRate, epochs, batchSize,
 			l2Lambda)
-		print('shape of weights', weights.shape)
 
-	# step 5 - predict class for validation data
-	print('# step 5 - predict class for validation data')
-	'''validationBasis = \
-		dumbledore.computeDesignMatrixUsingGaussianBasisFunction(
-			vali_data, centroids, clusterSpreadInvs)
-	'''
-	print('shape of weights:', weights.shape)
+	testBasis = np.insert(test_data, 0, 1, axis=1)
 
-	validationBasis = np.insert(vali_data, 0, 1, axis=1)
-
-	print('shape of validation basis:', validationBasis.shape)
-	predictedValidationClass = dumbledore.predictClass(validationBasis,
+	predictedTestClass = dumbledore.predictClass(testBasis,
 		weights)
 
-	# step 6 - one vectorization of predicted classes
-	print('# step 6 - one vectorization of predicted classes')
-	predictedValidationClass = \
-		dumbledore.representPredictionProbsAsOneHotVector(
-			predictedValidationClass)
+	testPredictionError = dumbledore.classificationError(
+		predictedTestClass, test_lbl)
+	print('classification error in MNIST test data:',
+		testPredictionError)
 
-	# step 7 - calculate validation error
-	print('# step 7 - calculate validation error')
-	validationPredictionError = dumbledore.classificationError(
-		predictedValidationClass, vali_lbl)
+	uspsNumeralsImgs = np.insert(uspsNumeralsImgs, 0, 1, axis=1)
+	uspsNumeralsImgsPredictedLabels = dumbledore.predictClass(
+		uspsNumeralsImgs, weights)
+	uspsNumeralsPredictionError = dumbledore.classificationError(
+		uspsNumeralsImgsPredictedLabels, uspsNumeralsLbls)
+	print('classification error on USPS Numerals folder data:',
+		uspsNumeralsPredictionError)
 
-	print('classification error is:', validationPredictionError)
+	uspsTestImgs = np.insert(uspsTestImgs, 0, 1, axis=1)
+	uspsTestImgsPredictedLabels = dumbledore.predictClass(
+		uspsTestImgs, weights)
+	uspsTestPredictionError = dumbledore.classificationError(
+		uspsTestImgsPredictedLabels, uspsTestLabels)
+	print('classification error on USPS test folder data:',
+		uspsTestPredictionError)
 
-	if loadWeights == False:
+	if writeWeights == True:
 		ironman.writeNumpyArrayToFile(directory, filename, weights)
 
 def main():
@@ -79,7 +57,8 @@ def main():
 	batchSize = 100
 	l2Lambda = 0.1
 	numBasis = 10
-	loadWeights = True
+	loadWeights = False
+	writeWeights = False
 
 	
 	[mnist_train_img, mnist_train_lbl, mnist_validation_img, \
@@ -88,12 +67,18 @@ def main():
 
 	# read usps images
 	directory = './../data/Numerals'
-	[uspsValiImgs, uspsValiLbls] = \
+	[uspsNumeralsImgs, uspsNumeralsLbls] = \
 		davinci.readUSPSTrainImagesAndLbls(directory)
 
+	directory = './../data/Test'
+	[uspsTestImgs, uspsTestLabels] = \
+		davinci.readUSPSTestImagesAndLbls(directory)
+
 	buildMultiClassClassifier(mnist_train_img, mnist_train_lbl,
-		uspsValiImgs, uspsValiLbls, numBasis,
-		learningRate, epochs, batchSize, l2Lambda, loadWeights)
+		mnist_test_img, mnist_test_lbl, numBasis,
+		learningRate, epochs, batchSize, l2Lambda, loadWeights,
+		writeWeights, uspsNumeralsImgs, uspsNumeralsLbls,
+		uspsTestImgs, uspsTestLabels)
 
 if __name__ == '__main__':
 	main()
